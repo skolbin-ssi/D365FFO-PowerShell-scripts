@@ -41,6 +41,19 @@ if ($null -eq $diskP_SSDDisk) {$diskP_SSDDisk = 'P:'}  #Target disk
 
 #region Get new disk online and format it -->
 $local_disks = Get-Disk | where {$_.PartitionStyle -eq 'RAW'}
+
+if ($null -eq $local_disks)
+{
+    Write-Error "There is no new disk attached to this VM"
+    throw "There is no new disk attached to this VM"
+}
+if ($null -ne $local_disks[1])  #$local_disks.Count -ne 1
+{
+    $local_disks | FT -AutoSize
+    Write-Error "Only one new disk should be attached to the VM"
+    throw "Only one new disk should be attached to the VM"
+}
+
 foreach($local_disk in $local_disks)
 {
     [string]$diskP_SSDDiskLetterOnly = $diskP_SSDDisk.Replace(':','')
@@ -265,6 +278,7 @@ Write-Host 'Start SQL Services back' -ForegroundColor Yellow
 Start-DbaService
 
 Write-Host 'Attach all Databases back' -ForegroundColor Yellow
+Write-Host '  Please note that only standard databases will be restored. If this environment has the AxDB restored from other environment, it will be necessary to re-attach it manually' -ForegroundColor Yellow
 $SQLScriptAtachAllDB = @"
     USE [master]
     GO
@@ -337,6 +351,9 @@ Register-ScheduledJob -Name AXDBOptimizationStartupTask -Trigger $atStartUp -Fil
 
 # Enable D365 Services
 Get-D365Environment | Set-Service -StartupType Automatic
+
+# Uninstall unnecessary PowerShell modules. Carbon definitely should be removed.
+Uninstall-Module -Name Carbon,RobocopyPS
 
 #region Delete Storage pool -->
 #if it failed, just re-execute whole block again or remove manually from Server Manager --> File and Storage Services --> Volumes --> Storage Pools
