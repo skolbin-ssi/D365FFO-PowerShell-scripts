@@ -95,8 +95,8 @@ Install-Module -Name dbatools -SkipPublisherCheck -Scope AllUsers
 Write-Host "Configure Windows Defender" -ForegroundColor Yellow
 Import-Module Defender
 Add-MpPreference -ExclusionExtension '*.mdf', '*.ldf', '*.xml', '*.rdl', '*.md'
-Add-MpPreference -ExclusionPath 'C:\ProgramData\sf'
-Add-MpPreference -ExclusionPath 'C:\Program Files\Microsoft Service Fabric\bin'
+#Add-MpPreference -ExclusionPath 'C:\ProgramData\sf'
+#Add-MpPreference -ExclusionPath 'C:\Program Files\Microsoft Service Fabric\bin'
 Add-MpPreference -ExclusionPath 'C:\AosService\PackagesLocalDirectory\Bin','K:\AosService\PackagesLocalDirectory\Bin'
 Add-MpPreference -ExclusionProcess @('Fabric.exe','FabricHost.exe','FabricInstallerService.exe','FabricSetup.exe','FabricDeployer.exe',
     'ImageBuilder.exe','FabricGateway.exe','FabricDCA.exe','FabricFAS.exe','FabricUOS.exe','FabricRM.exe','FileStoreService.exe')
@@ -148,7 +148,7 @@ Add-MpPreference -ExclusionPath "C:\Program Files (x86)\Microsoft SDKs"
 Add-MpPreference -ExclusionPath "C:\Program Files\Microsoft SDKs"
 Add-MpPreference -ExclusionPath "C:\Program Files (x86)\Common Files\Microsoft Shared\MSEnv"
 Add-MpPreference -ExclusionPath "C:\Program Files (x86)\Microsoft Office"
-Add-MpPreference -ExclusionPath ""
+#Add-MpPreference -ExclusionPath ""
 Add-MpPreference -ExclusionPath "C:\ProgramData\Microsoft\VisualStudio\Packages"
 Add-MpPreference -ExclusionPath "C:\Program Files (x86)\Microsoft SDKs\NuGetPackages"
 Add-MpPreference -ExclusionPath "C:\Windows\Microsoft.NET\Framework\v4.0.30319\Temporary ASP.NET Files"
@@ -299,21 +299,22 @@ choco install GoogleChrome, Far, 7zip
 #endregion Downloading Chrome browser -->
 
 #region Fix Trace Parser <--
-Write-Host "Fix Trace Parser" -ForegroundColor Yellow
+# Unfortunately, it doesn't work since 10.0.17 VM
+#Write-Host "Fix Trace Parser" -ForegroundColor Yellow
 #https://sinedax.blogspot.com/2018/12/trace-parser-doesnt-work-dynamics-365.html
-$resourcefiledir = "C:\AOSService\webroot"
-$inputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXExecutionTraces.man"
-$outputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXExecutionTraces_copy.man"
-$temp = Get-Content $inputmanfile
-$temp = $temp -replace "%APPROOT%",$resourcefiledir
-$temp | out-file $outputmanfile
-wevtutil im $outputmanfile
-$inputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXXppExecutionTraces.man"
-$outputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXXppExecutionTraces_copy.man"
-$temp = Get-Content $inputmanfile
-$temp = $temp -replace "%APPROOT%",$resourcefiledir
-$temp | out-file $outputmanfile
-wevtutil im $outputmanfile
+#$resourcefiledir = "C:\AOSService\webroot"
+#$inputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXExecutionTraces.man"
+#$outputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXExecutionTraces_copy.man"
+#$temp = Get-Content $inputmanfile
+#$temp = $temp -replace "%APPROOT%",$resourcefiledir
+#$temp | out-file $outputmanfile
+#wevtutil im $outputmanfile
+#$inputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXXppExecutionTraces.man"
+#$outputmanfile = "C:\AOSService\webroot\Monitoring\DynamicsAXXppExecutionTraces_copy.man"
+#$temp = Get-Content $inputmanfile
+#$temp = $temp -replace "%APPROOT%",$resourcefiledir
+#$temp | out-file $outputmanfile
+#wevtutil im $outputmanfile
 #endregion Fix Trace Parser -->
 
 #region Disable Telemetry (requires a reboot to take effect) <--
