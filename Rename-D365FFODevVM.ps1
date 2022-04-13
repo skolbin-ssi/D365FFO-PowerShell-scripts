@@ -87,8 +87,8 @@ Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Scope AllU
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 
 # Installing PowerShell modules d365fo.tools and dbatools
-Install-Module -Name d365fo.tools -SkipPublisherCheck -Scope AllUsers
-Install-Module -Name dbatools -SkipPublisherCheck -Scope AllUsers
+Install-Module -Name d365fo.tools -SkipPublisherCheck -Scope AllUsers -AllowClobber
+Install-Module -Name dbatools -SkipPublisherCheck -Scope AllUsers -AllowClobber
 #endregion Installing d365fo.tools and dbatools -->
 
 #region Configure Windows Defender <--
@@ -372,6 +372,10 @@ if ($disableMR) {
     Write-Host "..Skipping Disabling Management Reporter Service" -ForegroundColor Yellow
 }
 #endregion Stop and Disable Management Reporter Service -->
+
+#Extra setup for 10.0.24 and later
+Write-Host "Please open the following link and make configuration, if you have VHD version 10.0.24 and later" -ForegroundColor Yellow
+Write-Host "https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/vhd-setup" -ForegroundColor Yellow
 
 #Rename and restart
 Write-Host "Rename and restart" -ForegroundColor Yellow
