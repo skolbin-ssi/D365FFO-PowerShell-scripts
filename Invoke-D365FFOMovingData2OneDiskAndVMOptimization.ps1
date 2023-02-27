@@ -189,10 +189,10 @@ Write-Host 'Stopping monitoring and diagnostics services' -ForegroundColor Yello
 Get-Service DiagTrack,Dmwappushservice,MR2012ProcessService,LCSDiagnosticClientService -ErrorAction SilentlyContinue | Stop-Service -Force -Verbose
 
 Write-Host '..Stopping Monitoring Agent ETW sessions...' -ForegroundColor Yellow
-& K:\Monitoring\MonitoringInstall\MonitoringInstall.exe /stopsessions /log:K:\Monitoring\MonitoringInstall\Stopsessions.log /append
+& K:\AosService\PackagesLocalDirectory\Plugins\Monitoring\MonitoringInstall.exe /stopsessions /log:K:\AosService\PackagesLocalDirectory\Plugins\Monitoring\Stopsessions.log /append
 
 Write-Host '..Stopping Monitoring Agent processes...' -ForegroundColor Yellow
-& K:\Monitoring\MonitoringInstall\MonitoringInstall.exe /stopagentlauncher /id:SingleAgent /log:K:\Monitoring\MonitoringInstall\StopAgentLauncher.log /append /agentDirectory:K:\Monitoring\MonitoringInstall /rootdatadir:K:\MonAgentData
+& K:\AosService\PackagesLocalDirectory\Plugins\Monitoring\MonitoringInstall.exe /stopagentlauncher /id:SingleAgent /log:K:\AosService\PackagesLocalDirectory\Plugins\Monitoring\StopAgentLauncher.log /append /agentDirectory:K:\AosService\PackagesLocalDirectory\Plugins\Monitoring /rootdatadir:K:\MonAgentData
 
 #Stop D365 environment again
 Write-Host 'Stopping and disabling all FSCM services' -ForegroundColor Yellow
@@ -272,6 +272,10 @@ Write-Host 'Renaming disk P: to K:' -ForegroundColor Yellow
 Get-Partition -DriveLetter $diskK_ServiceVolume.Replace(':','') | Set-Partition -NewDriveLetter Q -Verbose
 Get-Partition -DriveLetter $diskP_SSDDisk.Replace(':','') | Set-Partition -NewDriveLetter $diskK_ServiceVolume.Replace(':','') -Verbose
 #endregion Renaming disks <--
+
+#region Fix registry value -->
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Dynamics\AX\7.0\SDK" -Name "BackupPath" -Value "$diskK_ServiceVolume\DynamicsBackup"
+#endregion Fix registry value <--
 
 #region Attach SQL Databases -->
 Write-Host 'Start SQL Services back' -ForegroundColor Yellow
