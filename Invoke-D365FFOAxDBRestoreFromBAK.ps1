@@ -33,10 +33,21 @@ foreach($module in  $modules2Install)
 }
 #endregion Installing d365fo.tools and dbatools -->
 
+#region Apply SQL Connection settings <--
+Set-DbatoolsConfig -FullName sql.connection.trustcert -Value $true 
+Set-DbatoolsConfig -FullName sql.connection.encrypt -Value $false
+#endregion Apply SQL Connection settings -->
+
 ## Stop D365FO instance
 Write-Host "Stopping D365FO environment" -ForegroundColor Yellow
 Stop-D365Environment | FT
 Enable-D365Exception -Verbose
+
+
+## (Optional) Backup current AxDB just in case. You can find this DB as AxDB_original.
+## You can skip this step
+#Write-Host "Backup current AxDB (Optional)" -ForegroundColor Yellow
+#Backup-DbaDatabase -SqlInstance localhost -Database AxDB -Type Full -CompressBackup -BackupFileName dbname-1005_original-backuptype-timestamp.bak -ReplaceInName
 
 #region Download bacpac from LCS
 if ($BacpacSasLinkFromLCS.StartsWith('http'))
@@ -56,6 +67,8 @@ if ($BacpacSasLinkFromLCS.StartsWith('http'))
 
 ## Restore New Database to SQL Server. Database name is AxDB_NEW
 Write-Host "Restoring new Database" -ForegroundColor Yellow
+#Trust SqlServer Certificate
+Set-DbatoolsConfig -FullName 'sql.connection.trustcert' -Value $true -Register
 #$f = Get-ChildItem C:\users\Admind9fca084f4\Downloads\AxDB_CTS-1005-BU2-202005051340.bak  #Please note that this file should be accessible from SQL server service account
 If (-not (Test-DbaPath -SqlInstance localhost -Path $($f.FullName)))
 {
@@ -63,13 +76,8 @@ If (-not (Test-DbaPath -SqlInstance localhost -Path $($f.FullName)))
     throw "Database file $($f.FullName) could not be found by SQL Server. Try to move it to C:\Temp"
 }
 $f | Unblock-File
-$f | Restore-DbaDatabase -SqlInstance localhost -DatabaseName $dbName -ReplaceDbNameInFile -Verbose
+$f | Restore-DbaDatabase -SqlInstance localhost -DatabaseName $dbName -ReplaceDbNameInFile -DestinationFileSuffix $dt -Verbose
 Rename-DbaDatabase -SqlInstance localhost -Database $dbName -LogicalName "$($f.BaseName)_<FT>"
-
-## (Optional) Backup current AxDB just in case. You can find this DB as AxDB_original.
-## You can skip this step
-#Write-Host "Backup current AxDB (Optional)" -ForegroundColor Yellow
-#Backup-DbaDatabase -SqlInstance localhost -Database AxDB -Type Full -CompressBackup -BackupFileName dbname-1005_original-backuptype-timestamp.bak -ReplaceInName
 
 #Remove AxDB_Original database, if it exists
 Write-Host "Removing old original database" -ForegroundColor Yellow

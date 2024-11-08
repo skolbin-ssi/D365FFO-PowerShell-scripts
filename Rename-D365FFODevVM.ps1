@@ -70,7 +70,7 @@ net accounts /maxpwage:unlimited
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 #Set Chocolatey Safe Switch
-chocolatey feature enable -n allowGlobalConfirmation
+choco feature enable -n allowGlobalConfirmation
 
 #Install Nartac SSL
 choco install iiscrypto-cli
@@ -161,6 +161,9 @@ Add-MpPreference -ExclusionPath "C:\Users\Administrator\AppData\Roaming\Microsof
 #endregion Configure Windows Defender -->
 
 #region SQL Server settings <--
+Set-DbatoolsConfig -FullName sql.connection.trustcert -Value $true 
+Set-DbatoolsConfig -FullName sql.connection.encrypt -Value $false
+
 Write-Host "SQL Server settings" -ForegroundColor Yellow
 $compMaxRAM = [Math]::Round((Get-WmiObject -Class win32_computersystem -ComputerName localhost).TotalPhysicalMemory/1Mb)
 $compSQLMaxRAM = [Math]::Round($compMaxRAM / 4)
@@ -170,7 +173,7 @@ $compSQLMinRAM = if ($compSQLMinRAM -le 1000) {1024} else {$compSQLMinRAM} #Just
 Write-Host ".. SQL Max RAM" $compSQLMaxRAM "SQL Min RAM" $compSQLMinRAM -ForegroundColor Gray
 
 $newName = $NewComputerName
-$oldName= Invoke-Sqlcmd -Query "select @@servername as Name"
+$oldName= Invoke-DbaQuery -SqlInstance localhost -Database AxDB -Query "select @@servername as Name"
 Write-Host "Old sql name is" $oldName.Name -ForegroundColor Yellow
 $SQLSCript = @"
 EXEC sys.sp_configure N'show advanced options', N'1'  RECONFIGURE WITH OVERRIDE
@@ -215,6 +218,7 @@ Write-Host "All Windows Updates were disabled" -ForegroundColor Green
 Write-Host "Update hosts file" -ForegroundColor Yellow
 $fileHosts = "$env:windir\System32\drivers\etc\hosts"
 "127.0.0.1 $($env:COMPUTERNAME)" | Add-Content -PassThru $fileHosts
+"127.0.0.1 $($oldName.Name)" | Add-Content -PassThru $fileHosts
 "127.0.0.1 $NewComputerName" | Add-Content -PassThru $fileHosts
 "127.0.0.1 localhost" | Add-Content -PassThru $fileHosts
 #endregion Update hosts file -->
@@ -373,10 +377,15 @@ if ($disableMR) {
 }
 #endregion Stop and Disable Management Reporter Service -->
 
+#region Add D365FnO URL to the IE and Edge favourites <--
+# $FnOURL = Get-D365Url
+# Set-D365FavoriteBookmark -Url $FnOURL.Url -D365FO
+#region Add D365FnO URL to the IE and Edge favourites -->
+
 #Extra setup for 10.0.24 and later
 Write-Host "Please open the following link and make configuration, if you have VHD version 10.0.24 and later" -ForegroundColor Yellow
 Write-Host "https://docs.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-tools/vhd-setup" -ForegroundColor Yellow
 
 #Rename and restart
 Write-Host "Rename and restart" -ForegroundColor Yellow
-Rename-Computer -NewName $NewComputerName -Restart
+Rename-D365ComputerName -NewName $NewComputerName -SSRSReportDatabase DynamicsAxReportServer
