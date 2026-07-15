@@ -1,5 +1,15 @@
 # https://github.com/valerymoskalenko/D365FFO-PowerShell-scripts/blob/master/Invoke-D365FFOMovingData2OneDiskAndVMOptimization.ps1
 $ErrorActionPreference = 'Stop'
+
+#region install chocolatey and fix IIS <--
+#Install Chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+choco feature enable -n allowGlobalConfirmation #Set Chocolatey Safe Switch
+choco install iiscrypto-cli #Install Nartac SSL https://www.nartac.com/Products/IISCrypto
+iiscryptocli.exe /template best
+#endregion install chocolatey and fix IIS -->
+
+
 #region Installing d365fo.tools and dbatools <--
 # This is requried by Find-Module, by doing it beforehand we remove some warning messages
 Write-Host 'Installing PowerShell modules d365fo.tools and dbatools' -ForegroundColor Yellow
@@ -128,7 +138,7 @@ Invoke-DbaQuery -SqlInstance localhost -Database master -Query $SQLScriptMoveTem
 
 #region SQL Databases optimization: Set grow step and Execute DB Shrink -->
 #Import SQL PowerShell module
-Import-Module SQLPS –DisableNameChecking
+Import-Module SQLPS -DisableNameChecking
 Write-Host 'SQL Performance optimization: Set growing factor to 64MByte' -ForegroundColor Yellow
 
 foreach($database in @('AxDB','AxDW','DynamicsAxReportServer','DynamicsAxReportServerTempDB','DYNAMICSXREFDB','FinancialReportingDb'))
